@@ -17,7 +17,7 @@ enum Unit {
     }
 
     public double fromBase(double valueInFeet) {
-        return valueInFeet / toFeetFactor; // convert from feet to this unit
+        return valueInFeet / toFeetFactor; // convert from feet
     }
 }
 
@@ -27,7 +27,7 @@ class Quantity {
 
     public Quantity(double value, Unit unit) {
         if (!Double.isFinite(value)) {
-            throw new IllegalArgumentException("Invalid numeric value");
+            throw new IllegalArgumentException("Invalid value");
         }
         if (unit == null) {
             throw new IllegalArgumentException("Unit cannot be null");
@@ -45,20 +45,41 @@ class Quantity {
         return Math.abs(this.toBase() - other.toBase()) < 0.0001;
     }
 
-    // ✅ UC5: Conversion method
+    // UC5: Conversion
     public double convertTo(Unit targetUnit) {
         if (targetUnit == null) {
             throw new IllegalArgumentException("Target unit cannot be null");
         }
-
-        double baseValue = this.toBase(); // step 1: convert to feet
-        return targetUnit.fromBase(baseValue); // step 2: convert to target
+        double base = this.toBase();
+        return targetUnit.fromBase(base);
     }
 
-    // Static version (as per your question)
-    public static double convert(double value, Unit source, Unit target) {
-        Quantity q = new Quantity(value, source);
-        return q.convertTo(target);
+    // ✅ UC6: Addition
+    public Quantity add(Quantity other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Other quantity cannot be null");
+        }
+
+        // Step 1: convert both to base (feet)
+        double sumBase = this.toBase() + other.toBase();
+
+        // Step 2: convert back to unit of first operand
+        double resultValue = this.unit.fromBase(sumBase);
+
+        return new Quantity(resultValue, this.unit);
+    }
+
+    // Static version (optional)
+    public static Quantity add(Quantity q1, Quantity q2) {
+        return q1.add(q2);
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public Unit getUnit() {
+        return unit;
     }
 }
 
@@ -66,31 +87,51 @@ public class QuantityManagementApp {
 
     public static void main(String[] args) {
 
-        System.out.println("Running UC5: Unit Conversion\n");
-
-        // -------- BASIC CONVERSIONS --------
-        System.out.println("1 ft → inch = " + Quantity.convert(1, Unit.FEET, Unit.INCH));
-        System.out.println("1 yard → inch = " + Quantity.convert(1, Unit.YARD, Unit.INCH));
-        System.out.println("30.48 cm → ft = " + Quantity.convert(30.48, Unit.CM, Unit.FEET));
+        System.out.println("Running UC6: Addition of Length Units\n");
 
         // -------- TEST CASES --------
-        if (Math.abs(Quantity.convert(1, Unit.FEET, Unit.INCH) - 12) < 0.0001)
-            System.out.println("Test 1 Passed: 1 ft = 12 in");
 
-        if (Math.abs(Quantity.convert(1, Unit.YARD, Unit.INCH) - 36) < 0.0001)
-            System.out.println("Test 2 Passed: 1 yd = 36 in");
+        // 1 ft + 12 in = 2 ft
+        Quantity q1 = new Quantity(1, Unit.FEET);
+        Quantity q2 = new Quantity(12, Unit.INCH);
+        Quantity result1 = q1.add(q2);
 
-        if (Math.abs(Quantity.convert(30.48, Unit.CM, Unit.FEET) - 1) < 0.0001)
-            System.out.println("Test 3 Passed: 30.48 cm = 1 ft");
+        if (Math.abs(result1.getValue() - 2.0) < 0.0001)
+            System.out.println("Test 1 Passed: 1 ft + 12 in = 2 ft");
+        else
+            System.out.println("Test 1 Failed");
 
-        // -------- EDGE CASE --------
+
+        // 1 yard + 3 ft = 2 yard
+        Quantity q3 = new Quantity(1, Unit.YARD);
+        Quantity q4 = new Quantity(3, Unit.FEET);
+        Quantity result2 = q3.add(q4);
+
+        if (Math.abs(result2.getValue() - 2.0) < 0.0001)
+            System.out.println("Test 2 Passed: 1 yd + 3 ft = 2 yd");
+        else
+            System.out.println("Test 2 Failed");
+
+
+        // 2 ft + 24 in = 4 ft
+        Quantity q5 = new Quantity(2, Unit.FEET);
+        Quantity q6 = new Quantity(24, Unit.INCH);
+        Quantity result3 = q5.add(q6);
+
+        if (Math.abs(result3.getValue() - 4.0) < 0.0001)
+            System.out.println("Test 3 Passed: 2 ft + 24 in = 4 ft");
+        else
+            System.out.println("Test 3 Failed");
+
+
+        // Edge case: null
         try {
-            Quantity.convert(Double.NaN, Unit.FEET, Unit.INCH);
+            q1.add(null);
             System.out.println("Test 4 Failed");
         } catch (IllegalArgumentException e) {
-            System.out.println("Test 4 Passed: Invalid input handled");
+            System.out.println("Test 4 Passed: Null handled");
         }
 
-        System.out.println("\nUC5 Completed.");
+        System.out.println("\nUC6 Completed.");
     }
 }
