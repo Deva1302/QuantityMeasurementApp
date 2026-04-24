@@ -2,9 +2,9 @@
 
 enum Unit {
     FEET(1.0),
-    INCH(1.0 / 12.0),          // 1 in = 1/12 ft
-    YARD(3.0),                 // 1 yd = 3 ft
-    CM(0.0328084);             // 1 cm ≈ 0.0328084 ft
+    INCH(1.0 / 12.0),
+    YARD(3.0),
+    CM(0.0328084);
 
     private final double toFeetFactor;
 
@@ -13,7 +13,11 @@ enum Unit {
     }
 
     public double toBase(double value) {
-        return value * toFeetFactor; // convert everything to feet
+        return value * toFeetFactor; // convert to feet
+    }
+
+    public double fromBase(double valueInFeet) {
+        return valueInFeet / toFeetFactor; // convert from feet to this unit
     }
 }
 
@@ -22,6 +26,12 @@ class Quantity {
     private Unit unit;
 
     public Quantity(double value, Unit unit) {
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException("Invalid numeric value");
+        }
+        if (unit == null) {
+            throw new IllegalArgumentException("Unit cannot be null");
+        }
         this.value = value;
         this.unit = unit;
     }
@@ -34,50 +44,53 @@ class Quantity {
         if (other == null) return false;
         return Math.abs(this.toBase() - other.toBase()) < 0.0001;
     }
+
+    // ✅ UC5: Conversion method
+    public double convertTo(Unit targetUnit) {
+        if (targetUnit == null) {
+            throw new IllegalArgumentException("Target unit cannot be null");
+        }
+
+        double baseValue = this.toBase(); // step 1: convert to feet
+        return targetUnit.fromBase(baseValue); // step 2: convert to target
+    }
+
+    // Static version (as per your question)
+    public static double convert(double value, Unit source, Unit target) {
+        Quantity q = new Quantity(value, source);
+        return q.convertTo(target);
+    }
 }
 
 public class QuantityManagementApp {
 
-    public static boolean compare(double v1, Unit u1, double v2, Unit u2) {
-        Quantity q1 = new Quantity(v1, u1);
-        Quantity q2 = new Quantity(v2, u2);
-        return q1.equals(q2);
-    }
-
     public static void main(String[] args) {
 
-        System.out.println("Running UC4: Extended Unit Support\n");
+        System.out.println("Running UC5: Unit Conversion\n");
 
-        // -------- BASIC TESTS --------
-        if (compare(1, Unit.FEET, 1, Unit.FEET))
-            System.out.println("Test 1 Passed: 1 ft == 1 ft");
+        // -------- BASIC CONVERSIONS --------
+        System.out.println("1 ft → inch = " + Quantity.convert(1, Unit.FEET, Unit.INCH));
+        System.out.println("1 yard → inch = " + Quantity.convert(1, Unit.YARD, Unit.INCH));
+        System.out.println("30.48 cm → ft = " + Quantity.convert(30.48, Unit.CM, Unit.FEET));
 
-        if (compare(12, Unit.INCH, 1, Unit.FEET))
-            System.out.println("Test 2 Passed: 12 in == 1 ft");
+        // -------- TEST CASES --------
+        if (Math.abs(Quantity.convert(1, Unit.FEET, Unit.INCH) - 12) < 0.0001)
+            System.out.println("Test 1 Passed: 1 ft = 12 in");
 
-        if (compare(1, Unit.YARD, 3, Unit.FEET))
-            System.out.println("Test 3 Passed: 1 yd == 3 ft");
+        if (Math.abs(Quantity.convert(1, Unit.YARD, Unit.INCH) - 36) < 0.0001)
+            System.out.println("Test 2 Passed: 1 yd = 36 in");
 
-        if (compare(100, Unit.CM, 1, Unit.METER)) // wait ❌ no meter yet → skip
-            System.out.println("Invalid"); // placeholder (ignore)
-
-
-        // -------- CROSS UNIT TESTS --------
-        if (compare(36, Unit.INCH, 1, Unit.YARD))
-            System.out.println("Test 4 Passed: 36 in == 1 yd");
-
-        if (compare(30.48, Unit.CM, 1, Unit.FEET))
-            System.out.println("Test 5 Passed: 30.48 cm == 1 ft");
-
-        if (!compare(1, Unit.YARD, 2, Unit.FEET))
-            System.out.println("Test 6 Passed: 1 yd != 2 ft");
-
+        if (Math.abs(Quantity.convert(30.48, Unit.CM, Unit.FEET) - 1) < 0.0001)
+            System.out.println("Test 3 Passed: 30.48 cm = 1 ft");
 
         // -------- EDGE CASE --------
-        Quantity q = new Quantity(1, Unit.FEET);
-        if (!q.equals(null))
-            System.out.println("Test 7 Passed: Null handled");
+        try {
+            Quantity.convert(Double.NaN, Unit.FEET, Unit.INCH);
+            System.out.println("Test 4 Failed");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Test 4 Passed: Invalid input handled");
+        }
 
-        System.out.println("\nUC4 Completed.");
+        System.out.println("\nUC5 Completed.");
     }
 }
