@@ -1,94 +1,90 @@
 // QuantityManagementApp.java
 
-class Feet {
-    private double value;
+enum Unit {
+    FEET(1.0),
+    INCH(1.0 / 12.0); // 1 inch = 1/12 feet
 
-    public Feet(double value) {
-        this.value = value;
+    private final double conversionFactor;
+
+    Unit(double factor) {
+        this.conversionFactor = factor;
     }
 
-    public boolean equals(Feet other) {
-        if (other == null) return false;
-        return Math.abs(this.value - other.value) < 0.0001;
+    public double toBase(double value) {
+        return value * conversionFactor; // convert to feet (base unit)
     }
 }
 
-class Inch {
+class Quantity {
     private double value;
+    private Unit unit;
 
-    public Inch(double value) {
+    public Quantity(double value, Unit unit) {
         this.value = value;
+        this.unit = unit;
     }
 
-    public boolean equals(Inch other) {
+    // Convert to base unit (feet)
+    private double toBase() {
+        return unit.toBase(value);
+    }
+
+    // Generic equality (works across units)
+    public boolean equals(Quantity other) {
         if (other == null) return false;
-        return Math.abs(this.value - other.value) < 0.0001;
+        return Math.abs(this.toBase() - other.toBase()) < 0.0001;
     }
 }
 
 public class QuantityManagementApp {
 
-    // Static method for Feet comparison
-    public static boolean compareFeet(double a, double b) {
-        Feet f1 = new Feet(a);
-        Feet f2 = new Feet(b);
-        return f1.equals(f2);
-    }
-
-    // Static method for Inch comparison
-    public static boolean compareInch(double a, double b) {
-        Inch i1 = new Inch(a);
-        Inch i2 = new Inch(b);
-        return i1.equals(i2);
+    // Static method for comparison (as per flow)
+    public static boolean compare(double v1, Unit u1, double v2, Unit u2) {
+        Quantity q1 = new Quantity(v1, u1);
+        Quantity q2 = new Quantity(v2, u2);
+        return q1.equals(q2);
     }
 
     public static void main(String[] args) {
 
-        System.out.println("Running UC2: Feet & Inch Equality\n");
+        System.out.println("Running UC3: Generic Quantity Class (DRY)\n");
 
-        // -------- FEET TESTS --------
-        if (compareFeet(0, 0))
-            System.out.println("Feet Test 1 Passed: 0 ft == 0 ft");
+        // -------- SAME UNIT TESTS --------
+        if (compare(1, Unit.FEET, 1, Unit.FEET))
+            System.out.println("Test 1 Passed: 1 ft == 1 ft");
         else
-            System.out.println("Feet Test 1 Failed");
+            System.out.println("Test 1 Failed");
 
-        if (compareFeet(1, 1))
-            System.out.println("Feet Test 2 Passed: 1 ft == 1 ft");
+        if (!compare(1, Unit.FEET, 2, Unit.FEET))
+            System.out.println("Test 2 Passed: 1 ft != 2 ft");
         else
-            System.out.println("Feet Test 2 Failed");
+            System.out.println("Test 2 Failed");
 
-        if (!compareFeet(1, 2))
-            System.out.println("Feet Test 3 Passed: 1 ft != 2 ft");
+        if (compare(12, Unit.INCH, 12, Unit.INCH))
+            System.out.println("Test 3 Passed: 12 in == 12 in");
         else
-            System.out.println("Feet Test 3 Failed");
+            System.out.println("Test 3 Failed");
 
-        if (!new Feet(1).equals(null))
-            System.out.println("Feet Test 4 Passed: Null handled");
+
+        // -------- CROSS UNIT TESTS --------
+        if (compare(1, Unit.FEET, 12, Unit.INCH))
+            System.out.println("Test 4 Passed: 1 ft == 12 in");
         else
-            System.out.println("Feet Test 4 Failed");
+            System.out.println("Test 4 Failed");
 
-
-        // -------- INCH TESTS --------
-        if (compareInch(0, 0))
-            System.out.println("Inch Test 1 Passed: 0 in == 0 in");
+        if (!compare(1, Unit.FEET, 10, Unit.INCH))
+            System.out.println("Test 5 Passed: 1 ft != 10 in");
         else
-            System.out.println("Inch Test 1 Failed");
+            System.out.println("Test 5 Failed");
 
-        if (compareInch(5, 5))
-            System.out.println("Inch Test 2 Passed: 5 in == 5 in");
+
+        // -------- EDGE CASE --------
+        Quantity q = new Quantity(1, Unit.FEET);
+        if (!q.equals(null))
+            System.out.println("Test 6 Passed: Null handled");
         else
-            System.out.println("Inch Test 2 Failed");
+            System.out.println("Test 6 Failed");
 
-        if (!compareInch(5, 10))
-            System.out.println("Inch Test 3 Passed: 5 in != 10 in");
-        else
-            System.out.println("Inch Test 3 Failed");
-
-        if (!new Inch(5).equals(null))
-            System.out.println("Inch Test 4 Passed: Null handled");
-        else
-            System.out.println("Inch Test 4 Failed");
-
-        System.out.println("\nUC2 Completed.");
+        System.out.println("\nUC3 Completed.");
     }
 }
