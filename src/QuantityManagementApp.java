@@ -1,14 +1,26 @@
 // QuantityManagementApp.java
 
-class Quantity {
-    private double value; // value in feet
+class Feet {
+    private double value;
 
-    public Quantity(double value) {
+    public Feet(double value) {
         this.value = value;
     }
 
-    // Equality check
-    public boolean equals(Quantity other) {
+    public boolean equals(Feet other) {
+        if (other == null) return false;
+        return Math.abs(this.value - other.value) < 0.0001;
+    }
+}
+
+class Inch {
+    private double value;
+
+    public Inch(double value) {
+        this.value = value;
+    }
+
+    public boolean equals(Inch other) {
         if (other == null) return false;
         return Math.abs(this.value - other.value) < 0.0001;
     }
@@ -16,47 +28,67 @@ class Quantity {
 
 public class QuantityManagementApp {
 
+    // Static method for Feet comparison
+    public static boolean compareFeet(double a, double b) {
+        Feet f1 = new Feet(a);
+        Feet f2 = new Feet(b);
+        return f1.equals(f2);
+    }
+
+    // Static method for Inch comparison
+    public static boolean compareInch(double a, double b) {
+        Inch i1 = new Inch(a);
+        Inch i2 = new Inch(b);
+        return i1.equals(i2);
+    }
+
     public static void main(String[] args) {
 
-        System.out.println("Running UC1: Feet Measurement Equality\n");
+        System.out.println("Running UC2: Feet & Inch Equality\n");
 
-        // Test 1: 0 ft == 0 ft
-        Quantity q1 = new Quantity(0);
-        Quantity q2 = new Quantity(0);
+        // -------- FEET TESTS --------
+        if (compareFeet(0, 0))
+            System.out.println("Feet Test 1 Passed: 0 ft == 0 ft");
+        else
+            System.out.println("Feet Test 1 Failed");
 
-        if (q1.equals(q2)) {
-            System.out.println("Test 1 Passed: 0 ft == 0 ft");
-        } else {
-            System.out.println("Test 1 Failed");
-        }
+        if (compareFeet(1, 1))
+            System.out.println("Feet Test 2 Passed: 1 ft == 1 ft");
+        else
+            System.out.println("Feet Test 2 Failed");
 
-        // Test 2: 1 ft == 1 ft
-        Quantity q3 = new Quantity(1);
-        Quantity q4 = new Quantity(1);
+        if (!compareFeet(1, 2))
+            System.out.println("Feet Test 3 Passed: 1 ft != 2 ft");
+        else
+            System.out.println("Feet Test 3 Failed");
 
-        if (q3.equals(q4)) {
-            System.out.println("Test 2 Passed: 1 ft == 1 ft");
-        } else {
-            System.out.println("Test 2 Failed");
-        }
+        if (!new Feet(1).equals(null))
+            System.out.println("Feet Test 4 Passed: Null handled");
+        else
+            System.out.println("Feet Test 4 Failed");
 
-        // Test 3: 1 ft != 2 ft
-        Quantity q5 = new Quantity(1);
-        Quantity q6 = new Quantity(2);
 
-        if (!q5.equals(q6)) {
-            System.out.println("Test 3 Passed: 1 ft != 2 ft");
-        } else {
-            System.out.println("Test 3 Failed");
-        }
+        // -------- INCH TESTS --------
+        if (compareInch(0, 0))
+            System.out.println("Inch Test 1 Passed: 0 in == 0 in");
+        else
+            System.out.println("Inch Test 1 Failed");
 
-        // Test 4: Null check
-        if (!q5.equals(null)) {
-            System.out.println("Test 4 Passed: Null handled correctly");
-        } else {
-            System.out.println("Test 4 Failed");
-        }
+        if (compareInch(5, 5))
+            System.out.println("Inch Test 2 Passed: 5 in == 5 in");
+        else
+            System.out.println("Inch Test 2 Failed");
 
-        System.out.println("\nUC1 Completed.");
+        if (!compareInch(5, 10))
+            System.out.println("Inch Test 3 Passed: 5 in != 10 in");
+        else
+            System.out.println("Inch Test 3 Failed");
+
+        if (!new Inch(5).equals(null))
+            System.out.println("Inch Test 4 Passed: Null handled");
+        else
+            System.out.println("Inch Test 4 Failed");
+
+        System.out.println("\nUC2 Completed.");
     }
 }
